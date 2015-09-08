@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<script type="text/javascript">
+
+var xhr=xhr||new XMLHttpRequest();
+var internalApiKey;
+var stVal;
+
+function convertSessionTokenToApiKey() {
+
+	// Get the input from the text box that the user pasted into
+	var urlToParse = document.getElementById("urlToParse").value;
+
+	// Create the RegExp objects
+	var regexSt = new RegExp("(?:[?&]session_token=)(?:[0-9a-z]*)"); // Matches "&session_token=0a1b2c..."
+	var regexSvr = new RegExp("(?:/v[12]/)"); // Matches "http://some.server.address.whatever/"
+
+	var baseUrlArr = urlToParse.split(regexSt); // Returns an array of the entire url in pieces excluding the "&session_token=0a1b2c..." param
+	var stParam = urlToParse.match(regexSt)[0]; // Returns only the "&session_token=0a14ad..." param
+
+	// This is to keep track of where the api_key param should be inserted into the url string once we get this value later in this method
+
+	// Get the value from the session_token param and get the server address then make an api call to get an interal api key from the session token
+	stVal = stParam.split("=")[1] // We only want to return the value from the session_token param
+	var serverUrl = urlToParse.split(regexSvr)[0]; // We are interested in knowing what the server was so that we can create the correct api key for the correct environment
+	xhr.open("GET",serverUrl+"/v2/session/context/get_internal_key.json?session_token="+stVal,false);
+	xhr.send();
+
+	internalApiKey = JSON.parse(xhr.response).data; // Parse the returned internal api key
+
+	// If an api key was not returned because an internal error message was thrown
+	if(internalApiKey === null) {
+
+		var errorMsg = JSON.parse(xhr.response).errors.message;
+
+		var elem = document.getElementById("convertedUrl");
+		elem.style.color = "red";
+		elem.innerHTML=errorMsg;
+	}
+	
+	// An api key was returned, now let's build the new url with this api key and display it on the page
+	else {
+
+		// This is to keep track of where the api_key param should be inserted into the url string
+		var stParamWasFirst = (stParam.indexOf("?") != -1);
+
+		// Form a new string and include the new api_key param
+		var urlWithApiKey = "";
+		var apiKeyParamAdded = false;
+		for(i=0;i<baseUrlArr.length;i++){
+
+			if(i == 1 && stParamWasFirst) {
+				urlWithApiKey = urlWithApiKey.concat("?api_key="+internalApiKey); // sneak the api_key param in between the building of the url and its params
+				apiKeyParamAdded = true;
+				urlWithApiKey = urlWithApiKey.concat(baseUrlArr[i]);
+			}
+			else {
+				urlWithApiKey = urlWithApiKey.concat(baseUrlArr[i]);
+			}
+		}
+
+		if(apiKeyParamAdded == false) {
+			urlWithApiKey = urlWithApiKey.concat("&api_key="+internalApiKey);
+		}
+
+		var elem = document.getElementById("convertedUrl");
+		elem.style.color = "black";
+		elem.innerHTML=urlWithApiKey;
+
+		// Obtain and display info about the api key's context
+		apiKeyInfo(serverUrl, internalApiKey);
+	}
+};
+
+function returnLinkForApiKeyInfo() {
+
+	// Get the input from the text box that the user pasted into
+	var apiKeyToParse = document.getElementById("apiKeyToParse").value;
+
+	var radioChoice;
+	var radioChoiceUrl;
+
+	// Get the current selected radio choice
+	if (document.getElementById('apiKeyRadioStage').checked) {
+		radioChoice = document.getElementById("apiKeyRadioStage");
+		radioChoiceUrl = ".stage";
+	}
+	else if (document.getElementById('apiKeyRadioProd').checked) {
+		radioChoice = document.getElementById("apiKeyRadioProd");
+		radioChoiceUrl = "";
+	}
+
+	var url = "https://api"+radioChoiceUrl+".mobileapptracking.com/v2/account/users/get_current?api_key="+apiKeyToParse;
+
+	// Update DOM with a link to the api key info page
+	var elem = document.getElementById("apiKeyInfo");
+	elem.style.color = "black";
+	elem.innerHTML="Api Key Info for "+radioChoice.value;
+	elem.setAttribute("href", url);
+};
+
+function returnLinkForSessionTokenInfo() {
+
+	// Get the input from the text box that the user pasted into
+	var stToParse = document.getElementById("stToParse").value;
+
+	var radioChoice;
+	var radioChoiceUrl;
+
+	// Get the current selected radio choice
+	if (document.getElementById('stRadioStage').checked) {
+		radioChoice = document.getElementById("stRadioStage");
+		radioChoiceUrl = ".stage";
+	}
+	else if (document.getElementById('stRadioProd').checked) {
+		radioChoice = document.getElementById("stRadioProd");
+		radioChoiceUrl = "";
+	}
+
+	var url = "https://api"+radioChoiceUrl+".mobileapptracking.com/v2/session/authenticate/get_session_data?session_token="+stToParse;
+
+	// Update DOM with a link to the api key info page
+	var elem = document.getElementById("stInfo");
+	elem.style.color = "black";
+	elem.innerHTML="Session Token Info for "+radioChoice.value;
+	elem.setAttribute("href", url);
+
+	var blahhh = radioChoice.innerHTML;
+	var blr = 2;
+};
+
+function apiKeyInfoOld(serverUrl, apiKey) {
+	// Make call to account/users/get_current
+	xhr.open("GET",serverUrl+"/v2/account/users/get_current?api_key="+internalApiKey,false);
+	xhr.send();
+
+	// "email": "automation@hasoffers.com",
+ //    "first_name": "Default",
+ //    "last_name": "Advertiser",
+ //    "phone": "2065551212",
+ //    "cell_phone": "2065551212",
+ //    "title": "Test Title",
+ //    "google_auth_verified": 0,
+ //    "google_auth_enabled": 0,
+ //    "status": "active",
+ //    "signup_ip": "10.129.2.110",
+ //    "created": "2013-05-29 15:25:24",
+ //    "modified": "2015-08-21 11:02:20",
+ //    "id": 13290,
+ //    "hide_organic": 0,
+ //    "account_id": 9328,
+ //    "name": "Default Advertiser",
+ //    "last_seen": "2015-08-21 10:27:05",
+ //    "time_zone": "America/Los_Angeles"
+
+	// Parse out the info you wish to display
+	// var email = JSON.parse(xhr.response).data.email;
+	// var first_name = JSON.parse(xhr.response).data.first_name;
+	// var last_name = JSON.parse(xhr.response).data.last_name;
+	// var phone = JSON.parse(xhr.response).data.phone;
+	// var cell_phone = JSON.parse(xhr.response).data.cell_phone;
+	// var title = JSON.parse(xhr.response).data.title;
+	// var google_auth_verified = JSON.parse(xhr.response).data.google_auth_verified;
+	// var google_auth_enabled = JSON.parse(xhr.response).data.google_auth_enabled;
+	// var status = JSON.parse(xhr.response).data.status;
+	// var signup_ip = JSON.parse(xhr.response).data.signup_ip;
+	// var created = JSON.parse(xhr.response).data.created;
+	// var modified = JSON.parse(xhr.response).data.modified;
+	// var id = JSON.parse(xhr.response).data.id;
+	// var hide_organic = JSON.parse(xhr.response).data.hide_organic;
+	// var account_id = JSON.parse(xhr.response).data.account_id;
+	// var name = JSON.parse(xhr.response).data.name;
+	// var last_seen = JSON.parse(xhr.response).data.last_seen;
+	// var time_zone = JSON.parse(xhr.response).data.time_zone;
+
+	// Update the DOM to use the new info obtained
+	var elem = document.getElementById("apiKeyInfoHeader");
+	elem.style.color = "black";
+	elem.innerHTML="Details about the api key("+internalApiKey+")";
+
+	document.getElementById("email").innerHTML="email: "+email;
+}
+
+// Disables the use of the Enter key to prevent refreshing the page inadvertently
+function disableEnterKey(evt) { 
+  var evt = (evt) ? evt : ((event) ? event : null); 
+  var node = (evt.target) ? evt.target : ((evt.srcElement) ? evt.srcElement : null); 
+  if ((evt.keyCode == 13) && (node.type=="text"))  {return false;} 
+} 
+document.onkeypress = disableEnterKey;
+
+</script>
+
+</head>
+
+<body style="width:50%">
+
+	<div style="padding-bottom:2%">
+		The below converts an api call's session_token value into an internal api key and returns the result so that it will be easier to create Jira issues with an api call that doesn't expire too quickly.
+		<br/>
+		Paste the url in the below text box and then click the button.
+	</div>
+
+	<form id="step1" style="padding-bottom:4%">
+		<input type="text" id="urlToParse" style="font-size:initial; width:100%"/>
+		<br/>
+		<input type="button" onClick="convertSessionTokenToApiKey();" style="background-color:lightgrey; font-weight:bold; font-size:small" value="Convert url to api key"/>
+	</form>
+
+	<!-- The output of the url with an included api key -->
+	<div>Converted url with api key:</div>
+	<div id="convertedUrl" style="font-weight:bold"></div>
+
+	<!-- These are junk -->
+	<div id="apiKeyInfoHeader" style="padding-top:4%"></div>
+	<div id="email"></div>
+
+	<!-- Api Key info form -->
+	<form id="step1" style="padding-bottom:4%">
+		<input type="radio" id="apiKeyRadioStage" name="radio1" value="Stage" checked>Stage
+		<input type="radio" id="apiKeyRadioProd" name="radio1" value="Prod">Prod
+		<input type="text" id="apiKeyToParse" style="font-size:initial; width:100%"/>
+		<br/>
+		<input type="button" onClick="returnLinkForApiKeyInfo();" style="background-color:lightgrey; font-weight:bold; font-size:small" value="Get api key info"/>
+		
+		<div style="padding-top:2%">
+			<a id="apiKeyInfo" href="" target="_blank"></a>
+		</div>
+	</form>
+
+	<!-- Session Token info form -->
+	<form id="step1" style="padding-bottom:4%">
+		<input type="radio" id="stRadioStage" name="radio2" value="Stage" checked>Stage
+		<input type="radio" id="stRadioProd" name="radio2" value="Prod">Prod
+		<input type="text" id="stToParse" style="font-size:initial; width:100%"/>
+		<br/>
+		<input type="button" onClick="returnLinkForSessionTokenInfo();" style="background-color:lightgrey; font-weight:bold; font-size:small" value="Get session token info"/>
+		
+		<div style="padding-top:2%">
+			<a id="stInfo" href="" target="_blank"></a>
+		</div>
+	</form>
+
+</body>
+
+</html>
