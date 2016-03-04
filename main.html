@@ -22,6 +22,17 @@ function convertSessionTokenToApiKey() {
 	var regexSvr = new RegExp("(?:/v[12]/)"); // Matches "http://some.server.address.whatever/"
 
 	var baseUrlArr = urlToParse.split(regexSt); // Returns an array of the entire url in pieces excluding the "&session_token=0a1b2c..." param
+
+	var yarg = urlToParse.match(regexSt);
+
+	// Check if a session token was found from the url
+	if (yarg == null) {
+		var elem = document.getElementById("convertedUrl");
+		elem.style.color = "red";
+		elem.innerHTML="Unable to parse out a session token. Check that a session token is supplied in the url.";
+		return;
+	}
+
 	var stParam = urlToParse.match(regexSt)[0]; // Returns only the "&session_token=0a14ad..." param
 
 	// This is to keep track of where the api_key param should be inserted into the url string once we get this value later in this method
@@ -135,56 +146,47 @@ function returnLinkForSessionTokenInfo() {
 	var blr = 2;
 };
 
-function apiKeyInfoOld(serverUrl, apiKey) {
-	// Make call to account/users/get_current
-	xhr.open("GET",serverUrl+"/v2/account/users/get_current?api_key="+internalApiKey,false);
+function generateSessionTokenFromApiKey() {
+	// automation: 8ef63dc82c97056da7808f3a1338c18a
+
+	// Generate a session token based off of the api key
+    // https://api.stage.mobileapptracking.com/v2/session/authenticate/api_key?api_keys=8ef63dc82c97056da7808f3a1338c18a
+
+	// Get the input from the text box that the user pasted into
+	var apiKeyToParse = document.getElementById("apiKeyToParseForSt").value;
+
+	// Get the current selected radio choice
+	if (document.getElementById('stRadioStagea').checked) {
+		radioChoice = document.getElementById("stRadioStagea");
+		radioChoiceUrl = ".stage";
+	}
+	else if (document.getElementById('stRadioProda').checked) {
+		radioChoice = document.getElementById("stRadioProda");
+		radioChoiceUrl = "";
+	}
+
+	var xhr=xhr||new XMLHttpRequest();
+	var url = "https://api"+radioChoiceUrl+".mobileapptracking.com/v2/session/authenticate/api_key?debug=13&api_keys="+apiKeyToParse;
+	xhr.open("GET",url,false);
 	xhr.send();
 
-	// "email": "automation@hasoffers.com",
- //    "first_name": "Default",
- //    "last_name": "Advertiser",
- //    "phone": "2065551212",
- //    "cell_phone": "2065551212",
- //    "title": "Test Title",
- //    "google_auth_verified": 0,
- //    "google_auth_enabled": 0,
- //    "status": "active",
- //    "signup_ip": "10.129.2.110",
- //    "created": "2013-05-29 15:25:24",
- //    "modified": "2015-08-21 11:02:20",
- //    "id": 13290,
- //    "hide_organic": 0,
- //    "account_id": 9328,
- //    "name": "Default Advertiser",
- //    "last_seen": "2015-08-21 10:27:05",
- //    "time_zone": "America/Los_Angeles"
+	var st = JSON.parse(xhr.response).data; // Parse the returned session token
 
-	// Parse out the info you wish to display
-	// var email = JSON.parse(xhr.response).data.email;
-	// var first_name = JSON.parse(xhr.response).data.first_name;
-	// var last_name = JSON.parse(xhr.response).data.last_name;
-	// var phone = JSON.parse(xhr.response).data.phone;
-	// var cell_phone = JSON.parse(xhr.response).data.cell_phone;
-	// var title = JSON.parse(xhr.response).data.title;
-	// var google_auth_verified = JSON.parse(xhr.response).data.google_auth_verified;
-	// var google_auth_enabled = JSON.parse(xhr.response).data.google_auth_enabled;
-	// var status = JSON.parse(xhr.response).data.status;
-	// var signup_ip = JSON.parse(xhr.response).data.signup_ip;
-	// var created = JSON.parse(xhr.response).data.created;
-	// var modified = JSON.parse(xhr.response).data.modified;
-	// var id = JSON.parse(xhr.response).data.id;
-	// var hide_organic = JSON.parse(xhr.response).data.hide_organic;
-	// var account_id = JSON.parse(xhr.response).data.account_id;
-	// var name = JSON.parse(xhr.response).data.name;
-	// var last_seen = JSON.parse(xhr.response).data.last_seen;
-	// var time_zone = JSON.parse(xhr.response).data.time_zone;
+	// If a session token was not returned because an internal error message was thrown
+	if(st === null) {
+		var errorMsg = JSON.parse(xhr.response).errors[0].message;
+		var elem = document.getElementById("generatedSt");
+		elem.style.color = "red";
+		elem.innerHTML=errorMsg;
+	}
+	
+	// An api key was returned, now let's build the new url with this api key and display it on the page
+	else {
+		var elem = document.getElementById("generatedSt");
+		elem.style.color = "black";
+		elem.innerHTML=st;
+	}	
 
-	// Update the DOM to use the new info obtained
-	var elem = document.getElementById("apiKeyInfoHeader");
-	elem.style.color = "black";
-	elem.innerHTML="Details about the api key("+internalApiKey+")";
-
-	document.getElementById("email").innerHTML="email: "+email;
 }
 
 // Disables the use of the Enter key to prevent refreshing the page inadvertently
@@ -199,7 +201,7 @@ document.onkeypress = disableEnterKey;
 
 </head>
 
-<body style="width:50%">
+<body style="width:50%; background-color:lightgray">
 
 	<div style="padding-bottom:2%">
 		The below converts an api call's session_token value into an internal api key and returns the result so that it will be easier to create Jira issues with an api call that doesn't expire too quickly.
@@ -207,7 +209,7 @@ document.onkeypress = disableEnterKey;
 		Paste the url in the below text box and then click the button.
 	</div>
 
-	<form id="step1" style="padding-bottom:4%">
+	<form id="step1" style="padding-bottom:4%; background-color:lightgoldenrodyellow">
 		<input type="text" id="urlToParse" style="font-size:initial; width:100%"/>
 		<br/>
 		<input type="button" onClick="convertSessionTokenToApiKey();" style="background-color:lightgrey; font-weight:bold; font-size:small" value="Convert url to api key"/>
@@ -222,7 +224,7 @@ document.onkeypress = disableEnterKey;
 	<div id="email"></div>
 
 	<!-- Api Key info form -->
-	<form id="step1" style="padding-bottom:4%">
+	<form id="step1" style="padding-bottom:4%; background-color:lightgreen">
 		<input type="radio" id="apiKeyRadioStage" name="radio1" value="Stage" checked>Stage
 		<input type="radio" id="apiKeyRadioProd" name="radio1" value="Prod">Prod
 		<input type="text" id="apiKeyToParse" style="font-size:initial; width:100%"/>
@@ -235,7 +237,17 @@ document.onkeypress = disableEnterKey;
 	</form>
 
 	<!-- Session Token info form -->
-	<form id="step1" style="padding-bottom:4%">
+	<form id="step1" style="padding-bottom:4%; background-color:lightblue">
+		<input type="radio" id="stRadioStagea" name="radio2a" value="Stage" checked>Stage
+		<input type="radio" id="stRadioProda" name="radio2a" value="Prod">Prod
+		<input type="text" id="apiKeyToParseForSt" style="font-size:initial; width:100%"/>
+		<br/>
+		<input type="button" onClick="generateSessionTokenFromApiKey();" style="background-color:lightgrey; font-weight:bold; font-size:small" value="Generate session token"/>
+
+		<!-- The output of the generated session token -->
+		<div>Generated Session Token:</div>
+		<div id="generatedSt" style="font-weight:bold;padding-bottom:4%"></div>
+
 		<input type="radio" id="stRadioStage" name="radio2" value="Stage" checked>Stage
 		<input type="radio" id="stRadioProd" name="radio2" value="Prod">Prod
 		<input type="text" id="stToParse" style="font-size:initial; width:100%"/>
