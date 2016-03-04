@@ -23,10 +23,10 @@ function convertSessionTokenToApiKey() {
 
 	var baseUrlArr = urlToParse.split(regexSt); // Returns an array of the entire url in pieces excluding the "&session_token=0a1b2c..." param
 
-	var yarg = urlToParse.match(regexSt);
+	var stMatch = urlToParse.match(regexSt);
 
 	// Check if a session token was found from the url
-	if (yarg == null) {
+	if (stMatch == null) {
 		var elem = document.getElementById("convertedUrl");
 		elem.style.color = "red";
 		elem.innerHTML="Unable to parse out a session token. Check that a session token is supplied in the url.";
@@ -34,8 +34,6 @@ function convertSessionTokenToApiKey() {
 	}
 
 	var stParam = urlToParse.match(regexSt)[0]; // Returns only the "&session_token=0a14ad..." param
-
-	// This is to keep track of where the api_key param should be inserted into the url string once we get this value later in this method
 
 	// Get the value from the session_token param and get the server address then make an api call to get an interal api key from the session token
 	stVal = stParam.split("=")[1] // We only want to return the value from the session_token param
@@ -67,7 +65,7 @@ function convertSessionTokenToApiKey() {
 		for(i=0;i<baseUrlArr.length;i++){
 
 			if(i == 1 && stParamWasFirst) {
-				urlWithApiKey = urlWithApiKey.concat("?api_key="+internalApiKey); // sneak the api_key param in between the building of the url and its params
+				urlWithApiKey = urlWithApiKey.concat("?api_key="+internalApiKey); // Sneak the api_key param inbetween the assembling of the url and its params
 				apiKeyParamAdded = true;
 				urlWithApiKey = urlWithApiKey.concat(baseUrlArr[i]);
 			}
@@ -141,16 +139,9 @@ function returnLinkForSessionTokenInfo() {
 	elem.style.color = "black";
 	elem.innerHTML="Session Token Info for "+radioChoice.value;
 	elem.setAttribute("href", url);
-
-	var blahhh = radioChoice.innerHTML;
-	var blr = 2;
 };
 
 function generateSessionTokenFromApiKey() {
-	// automation: 8ef63dc82c97056da7808f3a1338c18a
-
-	// Generate a session token based off of the api key
-    // https://api.stage.mobileapptracking.com/v2/session/authenticate/api_key?api_keys=8ef63dc82c97056da7808f3a1338c18a
 
 	// Get the input from the text box that the user pasted into
 	var apiKeyToParse = document.getElementById("apiKeyToParseForSt").value;
@@ -165,9 +156,9 @@ function generateSessionTokenFromApiKey() {
 		radioChoiceUrl = "";
 	}
 
-	var xhr=xhr||new XMLHttpRequest();
+	var xhr = xhr || new XMLHttpRequest();
 	var url = "https://api"+radioChoiceUrl+".mobileapptracking.com/v2/session/authenticate/api_key?debug=13&api_keys="+apiKeyToParse;
-	xhr.open("GET",url,false);
+	xhr.open("GET", url, false);
 	xhr.send();
 
 	var st = JSON.parse(xhr.response).data; // Parse the returned session token
@@ -186,15 +177,16 @@ function generateSessionTokenFromApiKey() {
 		elem.style.color = "black";
 		elem.innerHTML=st;
 	}	
-
 }
 
 // Disables the use of the Enter key to prevent refreshing the page inadvertently
 function disableEnterKey(evt) { 
+
   var evt = (evt) ? evt : ((event) ? event : null); 
   var node = (evt.target) ? evt.target : ((evt.srcElement) ? evt.srcElement : null); 
   if ((evt.keyCode == 13) && (node.type=="text"))  {return false;} 
-} 
+}
+
 document.onkeypress = disableEnterKey;
 
 </script>
@@ -219,12 +211,8 @@ document.onkeypress = disableEnterKey;
 	<div>Converted url with api key:</div>
 	<div id="convertedUrl" style="font-weight:bold"></div>
 
-	<!-- These are junk -->
-	<div id="apiKeyInfoHeader" style="padding-top:4%"></div>
-	<div id="email"></div>
-
 	<!-- Api Key info form -->
-	<form id="step1" style="padding-bottom:4%; background-color:lightgreen">
+	<form id="step2" style="padding-bottom:4%; background-color:lightgreen">
 		<input type="radio" id="apiKeyRadioStage" name="radio1" value="Stage" checked>Stage
 		<input type="radio" id="apiKeyRadioProd" name="radio1" value="Prod">Prod
 		<input type="text" id="apiKeyToParse" style="font-size:initial; width:100%"/>
@@ -237,7 +225,7 @@ document.onkeypress = disableEnterKey;
 	</form>
 
 	<!-- Session Token info form -->
-	<form id="step1" style="padding-bottom:4%; background-color:lightblue">
+	<form id="step3" style="padding-bottom:4%; background-color:lightblue">
 		<input type="radio" id="stRadioStagea" name="radio2a" value="Stage" checked>Stage
 		<input type="radio" id="stRadioProda" name="radio2a" value="Prod">Prod
 		<input type="text" id="apiKeyToParseForSt" style="font-size:initial; width:100%"/>
