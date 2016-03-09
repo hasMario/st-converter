@@ -79,7 +79,7 @@ function convertSessionTokenToApiKey() {
 		}
 
 		var elem = document.getElementById("convertedUrl");
-		elem.style.color = "black";
+		elem.style.color = "#009422";
 		elem.innerHTML=urlWithApiKey;
 
 		// Obtain and display info about the api key's context
@@ -109,8 +109,8 @@ function returnLinkForApiKeyInfo() {
 
 	// Update DOM with a link to the api key info page
 	var elem = document.getElementById("apiKeyInfo");
-	elem.style.color = "black";
-	elem.innerHTML="Api Key Info for "+radioChoice.value;
+	elem.style.color = "blue";
+	elem.innerHTML="Api Key info for "+radioChoice.value;
 	elem.setAttribute("href", url);
 };
 
@@ -136,8 +136,8 @@ function returnLinkForSessionTokenInfo() {
 
 	// Update DOM with a link to the api key info page
 	var elem = document.getElementById("stInfo");
-	elem.style.color = "black";
-	elem.innerHTML="Session Token Info for "+radioChoice.value;
+	elem.style.color = "blue";
+	elem.innerHTML="Session Token info for "+radioChoice.value;
 	elem.setAttribute("href", url);
 };
 
@@ -174,7 +174,7 @@ function generateSessionTokenFromApiKey() {
 	// An api key was returned, now let's build the new url with this api key and display it on the page
 	else {
 		var elem = document.getElementById("generatedSt");
-		elem.style.color = "black";
+		elem.style.color = "#009422";
 		elem.innerHTML=st;
 	}	
 }
@@ -193,56 +193,55 @@ document.onkeypress = disableEnterKey;
 
 </head>
 
-<body style="width:50%; background-color:lightgray">
+<body style="width: 50%; background-color: #F3F3F3">
 
-	<div style="padding-bottom:2%">
-		The below converts an api call's session_token value into an internal api key and returns the result so that it will be easier to create Jira issues with an api call that doesn't expire too quickly.
+	<!-- Convert session_token url to api_key url form -->
+	<div style="font-size: 20px">Enter an api call into the below box that you wish to convert its session_token value into an api_key</div>
+	<form id="step1">
+		<input type="text" placeholder="Enter api url" id="urlToParse" style="font-size: initial; width: 100%"/>
 		<br/>
-		Paste the url in the below text box and then click the button.
-	</div>
-
-	<form id="step1" style="padding-bottom:4%; background-color:lightgoldenrodyellow">
-		<input type="text" id="urlToParse" style="font-size:initial; width:100%"/>
-		<br/>
-		<input type="button" onClick="convertSessionTokenToApiKey();" style="background-color:lightgrey; font-weight:bold; font-size:small" value="Convert url to api key"/>
+		<input type="button" onClick="convertSessionTokenToApiKey();" style="background-color: #DCDCDC; font-weight: bold; font-size: small" value="Convert session token url to api key url"/>
 	</form>
+	<!-- The converted url with an api_key instead of a session_token -->
+	<div id="convertedUrlHeader" style="padding-top: 1%; font-size: 18px">Converted url with api key (triple-click url to select it all):</div>
+	<div id="convertedUrl" style="font-weight: bold; word-wrap: break-word; background-color: whitesmoke"></div>
 
-	<!-- The output of the url with an included api key -->
-	<div>Converted url with api key:</div>
-	<div id="convertedUrl" style="font-weight:bold"></div>
 
-	<!-- Api Key info form -->
-	<form id="step2" style="padding-bottom:4%; background-color:lightgreen">
+	<!-- Get api key info form -->
+	<div style="padding-top: 4%; font-size: 20px">Enter an api_key into the below box to get its info</div>
+	<form id="step2" style="padding-bottom: 1%">
 		<input type="radio" id="apiKeyRadioStage" name="radio1" value="Stage" checked>Stage
 		<input type="radio" id="apiKeyRadioProd" name="radio1" value="Prod">Prod
-		<input type="text" id="apiKeyToParse" style="font-size:initial; width:100%"/>
+		<input type="text" placeholder="Enter api key" id="apiKeyToParse" style="font-size: initial; width: 100%"/>
 		<br/>
-		<input type="button" onClick="returnLinkForApiKeyInfo();" style="background-color:lightgrey; font-weight:bold; font-size:small" value="Get api key info"/>
-		
-		<div style="padding-top:2%">
+		<input type="button" onClick="returnLinkForApiKeyInfo();" style="background-color: #DCDCDC; font-weight: bold; font-size: small" value="Get api key info"/>
+		<!-- Output -->
+		<div style="padding-top: 2%">
 			<a id="apiKeyInfo" href="" target="_blank"></a>
 		</div>
 	</form>
 
-	<!-- Session Token info form -->
-	<form id="step3" style="padding-bottom:4%; background-color:lightblue">
+	<!-- Generate session token form -->
+	<div style="padding-top: 3%; font-size: 20px">Enter an api_key into the below box to generate a session_token</div>
+	<form id="step3">
 		<input type="radio" id="stRadioStagea" name="radio2a" value="Stage" checked>Stage
 		<input type="radio" id="stRadioProda" name="radio2a" value="Prod">Prod
-		<input type="text" id="apiKeyToParseForSt" style="font-size:initial; width:100%"/>
+		<input type="text" placeholder="Enter api key" id="apiKeyToParseForSt" style="font-size: initial; width: 100%"/>
 		<br/>
-		<input type="button" onClick="generateSessionTokenFromApiKey();" style="background-color:lightgrey; font-weight:bold; font-size:small" value="Generate session token"/>
-
+		<input type="button" onClick="generateSessionTokenFromApiKey();" style="background-color: #DCDCDC; font-weight: bold; font-size: small" value="Generate session token"/>
 		<!-- The output of the generated session token -->
-		<div>Generated Session Token:</div>
-		<div id="generatedSt" style="font-weight:bold;padding-bottom:4%"></div>
+		<div style="padding-top: 1%; font-size: 18px">Generated session token:</div>
+		<div id="generatedSt" style="font-weight: bold; padding-bottom: 2%"></div>
 
+		<!-- Get session token info form -->
+		<div style="padding-top: 3%; font-size: 20px">Enter a session_token into the below box to get its info</div>
 		<input type="radio" id="stRadioStage" name="radio2" value="Stage" checked>Stage
 		<input type="radio" id="stRadioProd" name="radio2" value="Prod">Prod
-		<input type="text" id="stToParse" style="font-size:initial; width:100%"/>
+		<input type="text" placeholder="Enter session token" id="stToParse" style="font-size: initial; width: 100%"/>
 		<br/>
-		<input type="button" onClick="returnLinkForSessionTokenInfo();" style="background-color:lightgrey; font-weight:bold; font-size:small" value="Get session token info"/>
-		
-		<div style="padding-top:2%">
+		<input type="button" onClick="returnLinkForSessionTokenInfo();" style="background-color: #DCDCDC; font-weight: bold; font-size: small" value="Get session token info"/>
+		<!-- Output -->
+		<div style="padding-top: 2%">
 			<a id="stInfo" href="" target="_blank"></a>
 		</div>
 	</form>
