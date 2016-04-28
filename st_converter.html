@@ -19,7 +19,7 @@ function convertSessionTokenToApiKey() {
 
 	// Create the RegExp objects
 	var regexSt = new RegExp("(?:[?&]session_token=)(?:[0-9a-z]*)"); // Matches "&session_token=0a1b2c..."
-	var regexSvr = new RegExp("(?:/v[12]/)"); // Matches "http://some.server.address.whatever/"
+	var regexSvr = new RegExp("(?:/v[123]/)"); // Matches "http://some.server.address.whatever/"
 
 	var baseUrlArr = urlToParse.split(regexSt); // Returns an array of the entire url in pieces excluding the "&session_token=0a1b2c..." param
 
